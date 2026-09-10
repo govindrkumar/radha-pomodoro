@@ -215,8 +215,12 @@ select option{background:var(--q-dark);}
 .todo-tab{flex:1;padding:6px 0;text-align:center;cursor:pointer;font-family:'Oswald',sans-serif;font-size:0.65rem;letter-spacing:0.15rem;text-transform:uppercase;color:var(--q-muted);border-right:1px solid var(--q-border);transition:all 0.12s;}
 .todo-tab:last-child{border-right:none;}
 .todo-tab.active{background:var(--q-gold-pale);color:var(--q-gold);}
-.todo-add-row{display:flex;gap:6px;margin-bottom:10px;}
-.todo-add-btn{background:transparent;border:1px solid var(--q-gold);color:var(--q-gold);font-family:'Oswald',sans-serif;font-size:1rem;width:32px;cursor:pointer;transition:all 0.12s;display:flex;align-items:center;justify-content:center;}
+.todo-add-row{display:flex;gap:6px;margin-bottom:10px;width:100%;align-items:stretch;}
+.todo-add-row select{flex:0 0 92px;min-width:92px;height:38px;}
+.todo-add-row #todo-input{display:block !important;visibility:visible !important;opacity:1 !important;flex:1 1 auto !important;width:0;min-width:0;height:38px;box-sizing:border-box;background:#111119 !important;border:1px solid var(--q-gold-dim) !important;color:#fff !important;padding:8px 10px !important;border-radius:2px;}
+.todo-add-row #todo-input::placeholder{color:var(--q-muted);opacity:1;}
+.todo-add-row #todo-input:focus{border-color:var(--q-gold) !important;box-shadow:0 0 0 2px rgba(255,43,154,.10);}
+.todo-add-btn{background:transparent;border:1px solid var(--q-gold);color:var(--q-gold);font-family:'Oswald',sans-serif;font-size:1rem;width:38px;height:38px;flex:0 0 38px;cursor:pointer;transition:all 0.12s;display:flex;align-items:center;justify-content:center;}
 .todo-add-btn:hover{background:var(--q-gold);color:#000;}
 .todo-list{display:flex;flex-direction:column;gap:4px;max-height:400px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--q-border) transparent;}
 .todo-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--q-panel);border:1px solid var(--q-border);font-size:0.75rem;cursor:pointer;transition:border-color 0.12s;}
@@ -348,6 +352,13 @@ body::before{
 .aura-stat-lbl{font-size:.52rem;color:var(--q-muted);letter-spacing:.08rem;text-transform:uppercase;margin-top:2px;}
 @media(max-width:480px){.aura-stats{grid-template-columns:1fr;}.aura-chart-wrap{height:230px;}}
 
+
+@media (max-width:600px){
+  .todo-add-row{gap:5px;}
+  .todo-add-row select{flex-basis:82px;min-width:82px;}
+  .todo-add-row #todo-input{font-size:0.68rem;}
+  .todo-add-btn{width:36px;flex-basis:36px;}
+}
 </style>
 </head>
 <body>
@@ -572,6 +583,7 @@ body::before{
     </div>
   </div>
 </div>
+</div>
 
 <!-- ============================== PAGE: TO-DO ============================== -->
 <div class="page" id="page-todo">
@@ -591,7 +603,7 @@ body::before{
         <div class="todo-tab" onclick="switchTodoTab('other',this)">Other</div>
       </div>
       <div class="todo-add-row">
-        <select id="todo-subject-sel" style="min-width:70px;">
+        <select id="todo-subject-sel" aria-label="Todo subject">
           <option value="bio">Bio</option>
           <option value="chem">Chem</option>
           <option value="phys">Phys</option>
@@ -599,8 +611,8 @@ body::before{
           <option value="paint">Painting</option>
           <option value="other">Other</option>
         </select>
-        <input id="todo-input" type="text" placeholder="Add a mission..." style="flex:1;" onkeydown="if(event.key==='Enter')addTodo()">
-        <button class="todo-add-btn" onclick="addTodo()">+</button>
+        <input id="todo-input" type="text" autocomplete="off" placeholder="What needs to be done?" aria-label="New todo" onkeydown="if(event.key==='Enter'){event.preventDefault();addTodo();}">
+        <button type="button" class="todo-add-btn" onclick="addTodo()" aria-label="Add todo">+</button>
       </div>
       <div class="todo-list" id="todo-list"></div>
       <div class="todo-prog">
@@ -787,10 +799,14 @@ function tick() {
   document.getElementById('focus-mins').textContent = focusMins;
 }
 
-function sessionEnd(completed = false) {
+function sessionEnd(completed = false, elapsedSecs = null) {
   clearInterval(interval); running = false;
-  const bell = new AudioContext();
-  playBell(bell);
+  try {
+    const bell = new (window.AudioContext || window.webkitAudioContext)();
+    playBell(bell);
+  } catch(e) {
+    console.warn('Bell unavailable:', e);
+  }
   if (mode === 'work') {
     sessionsDone++;
     document.getElementById('sessions-done').textContent = sessionsDone;
@@ -800,21 +816,34 @@ function sessionEnd(completed = false) {
     document.getElementById('streak').textContent = streak;
 
     // Automatically write the completed Pomodoro into Study Log.
-    if (completed && activeStudySession) {
-      const {store,key,day}=getTodayData();
-      const mins=settings.work;
-      day[activeStudySession.subj]=(day[activeStudySession.subj]||0)+mins;
-      if(!day.sessions) day.sessions=[];
-      day.sessions.push({
-        subj:activeStudySession.subj,
-        topic:activeStudySession.topic,
-        mins:mins,
-        time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})
-      });
-      store[key]=day;
-      setStorage(store);
-      renderDailyPanel();
-      renderWeekSummary();
+    // Keep this block independent from audio/notification errors so a browser
+    // that blocks AudioContext cannot prevent the study data from being saved.
+    if ((completed || (mode === 'work' && elapsedSecs !== null && elapsedSecs > 0)) && activeStudySession) {
+      try {
+        const session = {...activeStudySession};
+        const {store,key,day}=getTodayData();
+        const elapsed = elapsedSecs === null ? totalSecs : Math.max(0, Number(elapsedSecs) || 0);
+        const mins = Math.max(1, Math.floor(elapsed / 60));
+        day[session.subj]=(Number(day[session.subj])||0)+mins;
+        if(!Array.isArray(day.sessions)) day.sessions=[];
+        day.sessions.push({
+          subj:session.subj,
+          topic:session.topic,
+          mins:mins,
+          time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),
+          status: completed ? 'Finished' : 'Skipped'
+        });
+        store[key]=day;
+        const saved = setStorage(store);
+        if (saved) {
+          renderDailyPanel();
+          renderWeekSummary();
+          renderAuraGraph();
+        }
+      } catch(e) {
+        console.error('Automatic Study Log save failed:', e);
+        showNotif('Save Error', 'Pomodoro finished, but Study Log could not be updated.');
+      }
     }
     activeStudySession = null;
 
@@ -850,9 +879,23 @@ function resetTimer() {
 }
 
 function skipSession() {
-  clearInterval(interval); running = false;
-  activeStudySession = null;
-  secsLeft = 0; sessionEnd(false);
+  clearInterval(interval);
+  running = false;
+  if (mode === 'work') {
+    const elapsedSecs = Math.max(0, totalSecs - secsLeft);
+    if (activeStudySession && elapsedSecs > 0) {
+      sessionEnd(false, elapsedSecs);
+      return;
+    }
+    activeStudySession = null;
+    secsLeft = 0;
+    updateDisplay(); updateRing();
+    document.getElementById('start-btn').textContent = '▶ Start';
+  } else {
+    activeStudySession = null;
+    secsLeft = 0;
+    sessionEnd(false, 0);
+  }
 }
 
 function updateDisplay() {
@@ -980,7 +1023,16 @@ function dateToKey(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padSta
 function getViewingKey() { return viewingDate||todayKey(); }
 function isViewingToday() { return getViewingKey()===todayKey(); }
 function getStorage() { try{return JSON.parse(localStorage.getItem('neet_warroom_v2')||'{}');}catch(e){return{};} }
-function setStorage(data) { try{localStorage.setItem('neet_warroom_v2',JSON.stringify(data));}catch(e){} }
+function setStorage(data) {
+  try {
+    localStorage.setItem('neet_warroom_v2', JSON.stringify(data));
+    return true;
+  } catch(e) {
+    console.error('Study Log save failed:', e);
+    showNotif('Save Error', 'Study Log could not be saved in this browser.');
+    return false;
+  }
+}
 function getTodayData() { const store=getStorage(),key=todayKey(); if(!store[key]) store[key]={bio:0,chem:0,phys:0,eng:0,paint:0,sessions:[]}; return{store,key,day:store[key]}; }
 function getViewingData() { const store=getStorage(),key=getViewingKey(); const day=store[key]||{bio:0,chem:0,phys:0,eng:0,paint:0,sessions:[]}; return{store,key,day}; }
 function shiftViewDate(delta) {
@@ -1015,7 +1067,9 @@ function renderDailyPanel() {
   [...sessions].reverse().forEach(s=>{
     const div=document.createElement('div');
     div.className='subj-log-row';
-    div.innerHTML=`<span class="subj-badge ${cmap[s.subj]||'badge-bio'}">${lmap[s.subj]||s.subj}</span><span style="flex:1;padding:0 8px;font-size:0.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.topic}</span><span style="font-size:0.62rem;color:var(--q-muted);white-space:nowrap;">${s.mins}m · ${s.time||''}</span>`;
+    const status = s.status || 'Logged';
+    const statusColor = status === 'Finished' ? 'var(--q-pink)' : status === 'Skipped' ? 'var(--q-muted)' : 'var(--q-muted)';
+    div.innerHTML=`<span class="subj-badge ${cmap[s.subj]||'badge-bio'}">${lmap[s.subj]||s.subj}</span><span style="flex:1;padding:0 8px;font-size:0.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.topic}</span><span style="font-size:0.58rem;color:${statusColor};white-space:nowrap;font-weight:700;">${status}</span><span style="font-size:0.62rem;color:var(--q-muted);white-space:nowrap;margin-left:6px;">${s.mins}m · ${s.time||''}</span>`;
     list.appendChild(div);
   });
   renderWeekSummary();
