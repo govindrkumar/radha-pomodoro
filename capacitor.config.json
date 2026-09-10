@@ -1,0 +1,29 @@
+{
+  "appId": "com.chaosroom.harleyquinn",
+  "appName": "Chaos Study Room",
+  "webDir": ".",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "buildOptions": {
+      "keystorePath": "~/.android/release-key.keystore",
+      "keystoreAlias": "release",
+      "keystoreAliasPassword": "password",
+      "keystorePassword": "password",
+      "releaseType": "AAB"
+    }
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 3000,
+      "launchAutoHide": true,
+      "backgroundColor": "#08080d",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "dark",
+      "backgroundColor": "#08080d"
+    }
+  }
+}
