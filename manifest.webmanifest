@@ -1,0 +1,57 @@
+{
+  "name": "CBSE Chaos Room — Harley Quinn Protocol",
+  "short_name": "Harley Pomo",
+  "description": "CBSE Board Pomodoro, study log, syllabus tracker and aura farming dashboard.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#08080d",
+  "theme_color": "#ff2b9a",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%2308080d'/%3E%3Ctext x='96' y='130' font-family='Oswald' font-size='90' font-weight='700' text-anchor='middle' fill='%23ff2d87'%3E♥%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%2308080d'/%3E%3Ctext x='256' y='350' font-family='Oswald' font-size='240' font-weight='700' text-anchor='middle' fill='%23ff2d87'%3E♥%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'%3E%3Crect width='540' height='720' fill='%2308080d'/%3E%3Ctext x='270' y='360' font-family='Oswald' font-size='60' text-anchor='middle' fill='%23ff2d87'%3EPomodoro Timer%3C/text%3E%3C/svg%3E",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Start Pomodoro",
+      "short_name": "Pomodoro",
+      "description": "Start a new focus session",
+      "url": "./",
+      "icons": [{
+        "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%23ff2d87'/%3E%3Ctext x='48' y='65' font-family='Oswald' font-size='50' text-anchor='middle' fill='%2308080d'%3E▶%3C/text%3E%3C/svg%3E",
+        "sizes": "96x96",
+        "type": "image/svg+xml"
+      }]
+    },
+    {
+      "name": "Study Log",
+      "short_name": "Log",
+      "description": "View your study sessions",
+      "url": "./?tab=studylog",
+      "icons": [{
+        "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%2362e6a7'/%3E%3Ctext x='48' y='65' font-family='Oswald' font-size='50' text-anchor='middle' fill='%2308080d'%3E📋%3C/text%3E%3C/svg%3E",
+        "sizes": "96x96",
+        "type": "image/svg+xml"
+      }]
+    }
+  ]
+}

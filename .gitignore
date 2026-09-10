@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+/.angular/cache
+/.cache
+/dist
+/tmp
+/out-tsc
+
+# Android
+/android/
+/ios/
+.gradle/
+build/
+*.apk
+*.aar
+*.aab
+*.jks
+*.keystore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+.env
+.env.local
+.env.*.local
